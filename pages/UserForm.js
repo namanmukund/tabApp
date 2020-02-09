@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useRef} from 'react'
 import {
   SafeAreaView,
   StyleSheet,
@@ -11,12 +11,10 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
-  FlatList,
-  KeyboardAvoidingView,
-  Alert,
+  Keyboard,
 } from 'react-native'
 import {TextInputMask} from 'react-native-masked-text'
-import {RNCamera, Size} from 'react-native-camera'
+import {RNCamera} from 'react-native-camera'
 import {Formik} from 'formik'
 import * as yup from 'yup'
 import {gql} from 'apollo-boost'
@@ -54,9 +52,12 @@ const UPLOAD_FILE = gql`
 `
 
 const App = props => {
-  const [cameraType, setCameraType] = useState('back')
-  const [mirrorMode, setMirrorMode] = useState(false)
+  const cameraType = 'back'
   const [images, setImages] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const nameRef = useRef()
+  const emailRef = useRef()
+  const phoneNumberRef = useRef()
 
   const takePicture = async camera => {
     const options = {quality: 0.5, base64: false}
@@ -75,6 +76,10 @@ const App = props => {
         isInitialValid={false}
         onSubmit={async (values, {setFieldValue, setTouched}) => {
           const resImages = []
+          Keyboard.dismiss()
+          nameRef.current.blur()
+          emailRef.current.blur()
+          setIsLoading(true)
           for (const image of images) {
             const splitImagePath = image.split('/')
             const name = splitImagePath[splitImagePath.length - 1]
@@ -97,13 +102,14 @@ const App = props => {
               images: resImages,
             },
           })
+          setIsLoading(false)
+          setFieldValue('name', '', false)
+          setFieldValue('email', '', false)
+          setFieldValue('phoneNumber', '', false)
           props.navigation.navigate('UserDetail', {
             res,
             images,
           })
-          setFieldValue('name', '', false)
-          setFieldValue('email', '', false)
-          setFieldValue('phoneNumber', '', false)
           setTouched({
             name: false,
             email: false,
@@ -130,17 +136,10 @@ const App = props => {
         }) => (
           <SafeAreaView>
             <ScrollView
+              testID="scrollView"
               contentInsetAdjustmentBehavior="automatic"
               style={styles.scrollView}>
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: '700',
-                  letterSpacing: 1.3,
-                  marginTop: 20,
-                }}>
-                Add new user
-              </Text>
+              <Text style={styles.headingText}>Add new user</Text>
               <>
                 <TextInput
                   style={styles.textInputStyle}
@@ -150,6 +149,7 @@ const App = props => {
                   onChangeText={handleChange('name')}
                   onBlur={() => setFieldTouched('name')}
                   testID={'nameInput'}
+                  ref={nameRef}
                 />
                 <Text style={styles.errorText} testID={'nameError'}>
                   {touched.name ? errors.name : ''}
@@ -161,7 +161,8 @@ const App = props => {
                   autoCapitalize="none"
                   keyboardType="email-address"
                   value={values.email}
-                  testID='emailInput'
+                  testID="emailInput"
+                  ref={emailRef}
                   onChangeText={handleChange('email')}
                   onBlur={() => setFieldTouched('email')}
                 />
@@ -177,8 +178,9 @@ const App = props => {
                   }}
                   style={styles.textInputStyle}
                   placeholder="Phone Number"
-                  testID='phoneNumberInput'
+                  testID="phoneNumberInput"
                   value={values.phoneNumber}
+                  ref={phoneNumberRef}
                   onBlur={() => setFieldTouched('phoneNumber')}
                   onChangeText={handleChange('phoneNumber')}
                 />
@@ -209,16 +211,10 @@ const App = props => {
                     return <ActivityIndicator animating />
                   }
                   return (
-                    <View
-                      style={{
-                        flex: 0,
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                      }}>
+                    <View style={styles.snapButton}>
                       <TouchableOpacity
                         onPress={() => takePicture(camera)}
-                        style={styles.capture}
-                        >
+                        style={styles.capture}>
                         <Text style={{fontSize: 14}}> SNAP </Text>
                       </TouchableOpacity>
                     </View>
@@ -226,9 +222,7 @@ const App = props => {
                 }}
               </RNCamera>
             </ScrollView>
-            <ScrollView
-              horizontal
-              style={{paddingHorizontal: 20, marginTop: 10}}>
+            <ScrollView horizontal style={styles.imagesScrollView}>
               {images.map(image => (
                 <Image
                   key={image}
@@ -238,47 +232,18 @@ const App = props => {
                 />
               ))}
             </ScrollView>
-            <View
-              style={{
-                position: 'absolute',
-                width: Dimensions.get('window').width,
-                height: Dimensions.get('window').height,
-              }}
-              pointerEvents="box-none">
+            <View style={styles.overlay} pointerEvents="box-none">
               <View
-                style={{
-                  position: 'absolute',
-                  width: '100%',
-                  height: 60,
-                  bottom: 0,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  opacity: isValid ? 1 : 0.4,
-                }}>
+                style={[
+                  styles.submitButtonWrapper,
+                  {opacity: isValid ? 1 : 0.4},
+                ]}>
                 <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    height: '70%',
-                    width: '80%',
-                  }}
+                  style={styles.submitButtonTouchable}
                   onPress={handleSubmit}
-                  testID='submitButton'
-                  >
-                  <View
-                    style={{
-                      backgroundColor: '#008CBA',
-                      borderRadius: 80,
-                      height: '70%',
-                      width: '100%',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <Text
-                      style={{
-                        color: 'white',
-                      }}>
-                      Submit
-                    </Text>
+                  testID="submitButton">
+                  <View style={styles.submitButtonContainer}>
+                    <Text style={styles.submitButtonText}>Submit</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -286,6 +251,11 @@ const App = props => {
           </SafeAreaView>
         )}
       </Formik>
+      {isLoading && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator animating size="large" />
+        </View>
+      )}
     </>
   )
 }
@@ -293,6 +263,12 @@ const App = props => {
 const styles = StyleSheet.create({
   scrollView: {
     marginHorizontal: 20,
+  },
+  headingText: {
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+    marginTop: 20,
   },
   textInputStyle: {
     borderColor: 'gray',
@@ -321,6 +297,54 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     height: 20,
+  },
+  submitButtonContainer: {
+    backgroundColor: '#008CBA',
+    borderRadius: 80,
+    height: '70%',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  submitButtonTouchable: {
+    flex: 1,
+    height: '70%',
+    width: '80%',
+  },
+  submitButtonWrapper: {
+    position: 'absolute',
+    width: '100%',
+    height: 60,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: 'white',
+  },
+  overlay: {
+    position: 'absolute',
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  },
+  imagesScrollView: {
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  snapButton: {
+    flex: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  loaderContainer: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })
 

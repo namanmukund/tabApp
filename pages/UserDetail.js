@@ -1,116 +1,48 @@
 import React, {useState, useEffect} from 'react'
 
-import { 
+import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Image,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native'
-import { withNavigation } from 'react-navigation'
+import {withNavigation} from 'react-navigation'
 
 const UserDetail = props => {
   const images = props.route.params.images
-  const { name, email, phoneNumber } = props.route.params.res.data.createUser
-  // console.log(JSON.stringify(props, null, 2))
+  const {name, email, phoneNumber} = props.route.params.res.data.createUser
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={styles.scrollView}
-    >
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: '700',
-          letterSpacing: 1.3,
-          marginTop: 20,
-        }}>
-        User Details
-      </Text>
-      <View style={{ marginTop: 15 }}>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '700',
-            letterSpacing: 1.3,
-            marginTop: 3,
-          }}
-          testID='nameResult'
-          >
-          Name: <Text style={{ fontWeight: '400', fontSize: 16 }}>{name}</Text>
+      style={styles.scrollView}>
+      <Text style={styles.userDetailsHeading}>User Details</Text>
+      <View style={{marginTop: 15}}>
+        <Text style={styles.resultText} testID="nameResult">
+          Name: <Text style={styles.resultSubText}>{name}</Text>
         </Text>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '700',
-            letterSpacing: 1.3,
-            marginTop: 3,
-          }}
-          testID='emailResult'
-          >
-          Email: <Text style={{ fontWeight: '400', fontSize: 16 }}>{email}</Text>
+        <Text style={styles.resultText} testID="emailResult">
+          Email: <Text style={styles.resultSubText}>{email}</Text>
         </Text>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '700',
-            letterSpacing: 1.3,
-            marginTop: 3,
-          }}
-          testID='phoneNumberResult'
-          >
-          Phone Number: <Text style={{ fontWeight: '400', fontSize: 16 }}>{phoneNumber}</Text>
+        <Text style={styles.resultText} testID="phoneNumberResult">
+          Phone Number: <Text style={styles.resultSubText}>{phoneNumber}</Text>
         </Text>
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: '700',
-            letterSpacing: 1.3,
-            marginTop: 15,
-          }}
-          >
-          Images
-        </Text>
-        <View style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginTop: 20
-        }}>
+        <Text style={styles.subHeading}>Images</Text>
+        <View style={styles.imagesContainer}>
           {images.map(image => (
-            <Image style={styles.image} source={{ uri: image }} />
+            <Image style={styles.image} source={{uri: image}} />
           ))}
         </View>
       </View>
 
       <TouchableOpacity
-        style={{
-          flex: 1,
-          height: 40,
-          width: '80%',
-          alignSelf: 'center'
-        }}
-        onPress={() => props.navigation.goBack()}
-        >
-        <View
-          style={{
-            backgroundColor: '#008CBA',
-            borderRadius: 80,
-            height: '100%',
-            width: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-          <Text
-            style={{
-              color: 'white',
-              fontSize: 16
-            }}>
-            Back to form
-          </Text>
+        style={styles.goBackTouchable}
+        onPress={() => props.navigation.goBack()}>
+        <View style={styles.goBackContainer}>
+          <Text style={styles.goBackText}>Back to form</Text>
         </View>
       </TouchableOpacity>
-
     </ScrollView>
   )
 }
@@ -123,8 +55,50 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     marginLeft: 10,
-    marginBottom: 10
-  }
+    marginBottom: 10,
+  },
+  userDetailsHeading: {
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+    marginTop: 20,
+  },
+  subHeading: {
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+    marginTop: 15,
+  },
+  resultText: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+    marginTop: 3,
+  },
+  resultSubText: {fontWeight: '400', fontSize: 16},
+  imagesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 20,
+  },
+  goBackTouchable: {
+    flex: 1,
+    height: 40,
+    width: '80%',
+    alignSelf: 'center',
+  },
+  goBackContainer: {
+    backgroundColor: '#008CBA',
+    borderRadius: 80,
+    height: '100%',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  goBackText: {
+    color: 'white',
+    fontSize: 16,
+  },
 })
 
 export default withNavigation(UserDetail)
